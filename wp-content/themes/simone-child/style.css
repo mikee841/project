@@ -1,0 +1,10 @@
+/*
+Theme Name: Child of Simone
+Theme URI: http://mor10.com/simone-wordpress-theme/
+Author: Morten Rand-Hendriksen
+Author URI: http://mor10.com/
+Description: Child theme of Simone to add ACF
+Version: 0.1
+*/
+
+@import url("../simone/style.css");
