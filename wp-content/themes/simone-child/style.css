@@ -8,3 +8,41 @@ Version: 0.1
 */
 
 @import url("../simone/style.css");
+
+.custom-widget h2
+{
+	font-size: 24px;
+}
+.custom-widget ul
+{
+	margin-top:10px;
+}
+.custom-widget .toppage-level
+{
+	list-style-type: circle;
+}
+.custom-widget .toppage-level a
+{
+	padding:10px;
+}
+.custom-widget .toppage-level .active a:not(.subpage-level)
+{
+	background-color:black;
+	color:white;
+}
+.custom-widget .subpage-level
+{
+	list-style-type: square;
+	margin-left:20px;
+}
+.custom-widget .subpage-level li a
+{
+	padding:10px;
+	background-color:white;
+	color:black;
+}
+.custom-widget .subpage-level .active a
+{
+	background-color:black;
+	color:white;
+}
