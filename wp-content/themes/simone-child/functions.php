@@ -189,6 +189,136 @@ function simon_get_parent_stylesheet_uri() {
 	}
 }
 
+function get_field_translation($key, $post_id)
+{
+	if(!$key)
+		return null;
+
+	if(!$post_id)
+		return null;
+
+	$field = get_field_object($key, $post_id);
+	return $field["label"];
+}
+
+function get_field_key($name)
+{
+	if(!$name)
+		return null;
+
+	$field = get_field_object($name);
+	return $field["key"];
+}
+
+function get_post_meta_history($key, $post_id)
+{
+	if(!$post_id)
+		return array();
+
+	global $wpdb;
+
+	$querystr = "
+		SELECT meta_value 
+		FROM $wpdb->postmeta 
+		WHERE meta_key = '$key' and post_id = '$post_id' 
+		ORDER BY meta_id desc
+	";
+
+	$postmeta = $wpdb->get_results( $querystr, OBJECT );
+	$result = array();
+	if ( ! $postmeta ) {
+	    $wpdb->print_error();
+	}
+	else {
+		foreach($postmeta as $item)
+			$result[] = $item;
+	}
+
+	return $result;
+}
+
+function notify_changes( $post_id ) {
+
+	// If this is just a revision or autosave, don't send the email.
+	if ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) )
+		return;
+
+	$changes = 0;
+
+	$post_revisions = wp_get_post_revisions($post_id);
+	$current_post = array_shift($post_revisions);
+	$previous_post = array_shift($post_revisions);
+
+	$post_title = get_the_title( $post_id );
+	$post_url = get_permalink( $post_id );
+
+	$update_subject = function($current_post, $previous_post, $post_title)
+	{
+		if(get_the_time('YmdHis') == get_the_modified_time('YmdHis'))
+			$subject = 'Uusi sivu  julkaistu '.$current_post->post_title;
+		else
+			$subject = 'Sivua päivitetty '.$previous_post->post_title;
+
+		return $subject;
+	};
+
+	$update_message = function($current_post, $previous_post, $post_title, $post_url)
+	{
+		if(get_the_time('YmdHis') == get_the_modified_time('YmdHis'))
+			$message = "Hei, osoitteeseen ".$post_url." on julkaistu uusi sivu.\n\n";
+		else
+			$message = "Hei, sivulla ".$previous_post->post_title." seuraavat kentät ovat muuttuneet:\n\n";
+
+		return $message;
+	};
+
+	$subject = $update_subject($current_post, $previous_post, $post_title);
+	$message = $update_message($current_post, $previous_post, $post_title, $post_url);
+
+	if($_POST['post_title'] && $previous_post->post_title != $current_post->post_title)
+	{
+		$old_value_addition = ($previous_post->post_title)? "(Vanha arvo: '".$previous_post->post_title."')" : '';
+		$message .= "Otsikko: ".$_POST['post_title']." $old_value_addition\n";
+		$subject = $update_subject($current_post, $previous_post, $post_title);
+		$changes++;
+	}
+
+	if($_POST['post_content'] && $previous_post->post_content != $current_post->post_content)
+	{
+		$old_value_addition = ($previous_post->post_content)? "(Vanha arvo: '".$previous_post->post_content."')" : '';
+		$message .= "Sisältö: ".$_POST['post_content']." $old_value_addition\n";
+		$subject = $update_subject($current_post, $previous_post, $post_title);
+		$changes++;
+	}
+
+	$fields = get_fields($post_id);
+	foreach($fields as $key => $value)
+	{
+		if(!$_POST["fields"][get_field_key($key)])
+			continue;
+
+		$previous_value = '';
+		if(get_the_time('YmdHis') != get_the_modified_time('YmdHis'))
+		{
+			$post_meta_history_for_key = get_post_meta_history($key, $previous_post->ID);
+
+			$previous_postmeta_for_key = array_shift($post_meta_history_for_key);
+			$previous_value = $previous_postmeta_for_key->meta_value;
+		}
+
+		if($_POST["fields"][get_field_key($key)] && $previous_value != $_POST["fields"][get_field_key($key)])
+		{
+			$old_value_addition = (get_the_time('YmdHis') != get_the_modified_time('YmdHis') &&$previous_postmeta_for_key->meta_value)? "(Vanha arvo: ".$previous_postmeta_for_key->meta_value.")" : '';
+			$message .= get_field_translation($key, $post_id).": ".$_POST["fields"][get_field_key($key)]." $old_value_addition\n";
+			$changes++;
+		}
+	}
+
+	if($changes>0)
+		wp_mail( get_option('admin_email'), $subject, $message );
+}
+add_action( 'save_post', 'notify_changes' );
+
 /**
  * Implement the Custom Header feature.
  */

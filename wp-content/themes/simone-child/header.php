@@ -45,7 +45,7 @@
 		<nav id="site-navigation" class="main-navigation clear" role="navigation">
                     <h1 class="menu-toggle"><a href="#"><?php _e( 'Menu', 'simone' ); ?></a></h1>
 
-			<?php wp_nav_menu( array( 'theme_location' => 'primary' ) ); ?>
+			<?php wp_nav_menu( array('theme_location' => 'primary' ) ); ?>
 
                         <div class="search-toggle">
                             <i class="fa fa-search"></i>

@@ -29,7 +29,7 @@ class custom_widget extends WP_Widget
 				<h2><?=the_field('sidebar_title')?></h2>
 				<ul class="toppage-level">
 					<?
-						$currentPagePermalink = get_the_permalink();
+						$current_page_permalink = get_the_permalink();
 						$query_args = array(
 								'post_parent' => 0,
 								'post_type' => 'page',
@@ -38,7 +38,7 @@ class custom_widget extends WP_Widget
 							);
 						$query = new WP_Query($query_args);
 						while($query->have_posts()) : $query->the_post();?>
-							<li <?if($currentPagePermalink == get_the_permalink()):?>class="active"<?endif?>><a href="<?=the_permalink()?>"><?=the_title()?></a>
+							<li <?if($current_page_permalink == get_the_permalink()):?>class="active"<?endif?>><a href="<?=the_permalink()?>"><?=the_title()?></a>
 							</li>
 							<?
 								$post = get_post();
@@ -53,7 +53,7 @@ class custom_widget extends WP_Widget
 								<ul class="subpage-level"> 
 								<?
 								while($subquery->have_posts()) : $subquery->the_post();?>
-									<li <?if($currentPagePermalink == get_the_permalink()):?>class="active"<?endif?>><a href="<?=the_permalink()?>"><?=the_title()?></a>
+									<li <?if($current_page_permalink == get_the_permalink()):?>class="active"<?endif?>><a href="<?=the_permalink()?>"><?=the_title()?></a>
 									</li>
 								<?endwhile?>
 								</ul>
